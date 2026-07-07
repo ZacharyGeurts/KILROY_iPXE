@@ -1,0 +1,38 @@
+#!ipxe
+
+# KILROY iPXE 1.0 -- Sovereign Network Boot
+# Fetches latest KILROY kernel + KILROY-firmware from GitHub releases
+# ZacharyGeurts/KILROY and ZacharyGeurts/KILROY-firmware
+# One per person. Truth gated. Mesh verified.
+# Boots into full stack that includes preconfigured personal weebsites + own domains (GH Pages + local field-dns).
+# KILROY > Linux.
+
+echo
+echo KILROY iPXE 1.0
+echo KILROY > Linux | Field1 | One-per-person | Mesh | Truth-gated
+echo
+
+dhcp || shell
+
+set kilroy https://github.com/ZacharyGeurts/KILROY/releases/latest/download/
+set firmware https://github.com/ZacharyGeurts/KILROY-firmware/releases/latest/download/
+
+echo KILROY base: ${kilroy}
+echo Firmware base: ${firmware}
+
+# Preferred: chain a helper boot script if user uploaded KILROY-boot.ipxe to main KILROY release
+# Allows complex boot (kernel + params + optional initrd) in one place.
+chain ${kilroy}KILROY-boot.ipxe || chain ${kilroy}kilroy-boot.ipxe ||
+
+# Direct kernel from KILROY release (user uploads the bzImage as KILROY-bzImage)
+kernel ${kilroy}KILROY-bzImage || kernel ${kilroy}bzImage || kernel ${kilroy}vmlinuz || echo "No KILROY kernel in release yet (upload KILROY-bzImage)"
+
+# Firmware: the tar is for full install / curation, not always direct initrd.
+# If a small dedicated initrd or cpio with k-firmware is uploaded to firmware release, it will be tried.
+initrd ${firmware}KILROY-firmware-initrd.cpio || initrd ${firmware}KILROY-firmware.cpio || initrd ${firmware}firmware.img || echo "No dedicated firmware initrd (firmware tar available in release for offline use)"
+
+echo
+echo Booting KILROY (latest from releases)...
+boot || shell
+
+echo KILROY iPXE done.
